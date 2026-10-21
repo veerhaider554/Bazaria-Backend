@@ -3,8 +3,8 @@ require("dotenv").config();
 const app = require("./app");
 const connectDB = require("./config/db");
 
-const PORT = Number(process.env.PORT) || 5000;
-
+// PORT setting for Cloud Deployment
+const PORT = process.env.PORT || 5000;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,13 +20,10 @@ const startServer = async () => {
          */
         await connectDB();
 
-
-        const server = app.listen(PORT, () => {
-            console.log(
-                `Bazaria API running on port ${PORT}`
-            );
+        // 0.0.0.0 is mandatory for cloud host binding
+        const server = app.listen(PORT, "0.0.0.0", () => {
+            console.log(`Bazaria API running on port ${PORT}`);
         });
-
 
         /*
         |--------------------------------------------------------------------------
@@ -35,67 +32,39 @@ const startServer = async () => {
         */
 
         const shutdown = async (signal) => {
-            console.log(
-                `${signal} received. Shutting down...`
-            );
-
+            console.log(`${signal} received. Shutting down...`);
 
             server.close(async () => {
-                console.log(
-                    "HTTP server closed."
-                );
-
+                console.log("HTTP server closed.");
 
                 try {
                     const mongoose = require("mongoose");
-
                     await mongoose.connection.close();
-
-                    console.log(
-                        "MongoDB connection closed."
-                    );
-
+                    console.log("MongoDB connection closed.");
                     process.exit(0);
-
                 } catch (error) {
-                    console.error(
-                        "Shutdown error:",
-                        error.message
-                    );
-
+                    console.error("Shutdown error:", error.message);
                     process.exit(1);
                 }
             });
         };
 
-
-        process.on(
-            "SIGINT",
-            () => shutdown("SIGINT")
-        );
-
-        process.on(
-            "SIGTERM",
-            () => shutdown("SIGTERM")
-        );
+        process.on("SIGINT", () => shutdown("SIGINT"));
+        process.on("SIGTERM", () => shutdown("SIGTERM"));
 
     } catch (error) {
-        console.error(
-            "Bazaria startup failed:",
-            error.message
-        );
-
+        console.error("Bazaria startup failed:", error.message);
         process.exit(1);
     }
 };
 
-         process.on('unhandledRejection', (reason, promise) => {
-    console.log('Unhandled Rejection:', reason);
+// Global Error Handlers to prevent crashes
+process.on("unhandledRejection", (reason, promise) => {
+    console.log("Unhandled Rejection:", reason);
 });
 
-process.on('uncaughtException', (err) => {
-    console.log('Uncaught Exception:', err);
+process.on("uncaughtException", (err) => {
+    console.log("Uncaught Exception:", err);
 });
-
 
 startServer();
