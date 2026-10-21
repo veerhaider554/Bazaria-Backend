@@ -89,5 +89,13 @@ const startServer = async () => {
     }
 };
 
+         process.on('unhandledRejection', (reason, promise) => {
+    console.log('Unhandled Rejection:', reason);
+});
+
+process.on('uncaughtException', (err) => {
+    console.log('Uncaught Exception:', err);
+});
+
 
 startServer();
